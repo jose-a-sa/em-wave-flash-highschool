@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 width="550" height="50" xmlns:components="components.*"
+		 creationComplete="init(event)" mask="{mask}">
+	
+	<s:filters>
+		<s:GlowFilter blurX="4" blurY="4" alpha="0.6" color="0x000000" strength="2" inner="true" quality="3" />
+	</s:filters>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenMax;
+			
+			import mx.events.FlexEvent;
+			
+			public static var WAVES_ARRAY:Array = [ALL, RADIOWAVES, MICROWAVES, INFRARED, VISIBLE_WAVES, ULTRAVIOLET, X_RAYS, GAMMA_RAYS];
+			
+			public static var ALL:String = "all";
+			public static var RADIOWAVES:String = "radio";
+			public static var MICROWAVES:String = "micro";
+			public static var INFRARED:String = "infraRed";
+			public static var VISIBLE_WAVES:String = "visible";
+			public static var ULTRAVIOLET:String = "ultraViolet";
+			public static var X_RAYS:String = "xRays";
+			public static var GAMMA_RAYS:String = "gammaRays";
+			
+			public var waveTypes:Array = [RADIOWAVES,MICROWAVES,INFRARED,VISIBLE_WAVES,ULTRAVIOLET,X_RAYS,GAMMA_RAYS];
+			
+			private var xPositions:Array = [0,190,285,331,357,400,490,550];
+			
+			protected function init(event:FlexEvent):void
+			{
+				changeSelectedWave(ALL);
+			}
+			
+			public function changeSelectedWave(type:String):void
+			{
+				var index:int;
+				
+				var leftX:Number; 
+				var rightX:Number;
+				
+				if(type == ALL)
+				{
+					leftX = xPositions[0]; 
+					rightX = xPositions[7]; 
+				}
+				else
+				{
+					index = waveTypes.indexOf(type);
+					
+					leftX = xPositions[index]; 
+					rightX = xPositions[index+1]; 
+				}
+				
+				TweenMax.to(leftArea, 0.750, { width: leftX });
+				TweenMax.to(rightArea, 0.750, { left: rightX });
+				
+				var paddleLeftX:Number = leftX - leftPaddle.width/2 < 0 ? 0 : leftX - leftPaddle.width/2; 
+				var paddleRightX:Number = rightX - rightPaddle.width/2 > this.width - rightPaddle.width ? 
+					this.width - rightPaddle.width : rightX - rightPaddle.width/2; 
+				
+				TweenMax.to(leftPaddle, 0.750, { x: paddleLeftX });
+				TweenMax.to(rightPaddle, 0.750, { x: paddleRightX });
+			}
+		]]>
+	</fx:Script>
+		
+	
+	<s:Rect radiusX="4" radiusY="4" top="0" bottom="0" left="0" right="0">
+		<s:fill>
+			<s:SolidColor color="0x99cccc" />
+		</s:fill>
+	</s:Rect>
+	
+	<components:EMPlot top="0" bottom="0" left="0" right="0" />
+	
+	<s:Rect radiusX="2" radiusY="2" top="1" bottom="1" width="20" horizontalCenter="70" alpha="0.4">
+		<s:fill>
+			<s:LinearGradient >
+				<s:GradientEntry color="0xFF0000" />
+				<s:GradientEntry color="0xFF9900" />
+				<s:GradientEntry color="0xFFCC00" />
+				<s:GradientEntry color="0x66CC33" />
+				<s:GradientEntry color="0x3399FF" />
+				<s:GradientEntry color="0x0000CC" />
+				<s:GradientEntry color="0x660099" />
+			</s:LinearGradient>
+		</s:fill>
+		<s:filters>
+			<s:BlurFilter blurX="3" blurY="3" quality="3" />
+		</s:filters>
+	</s:Rect>
+	
+	<s:Rect id="leftArea" bottomLeftRadiusX="4" bottomLeftRadiusY="4" topLeftRadiusX="4" topLeftRadiusY="4" 
+			height="100%" left="0" alpha="0.4" blendMode="multiply" width="0" >
+		<s:fill>
+			<s:SolidColor color="0x000000" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect id="rightArea" bottomRightRadiusX="4" bottomRightRadiusY="4" topRightRadiusX="4" topRightRadiusY="4" 
+			height="100%" right="0" alpha="0.4" blendMode="multiply" left="550" >
+		<s:fill>
+			<s:SolidColor color="0x000000" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect id="leftPaddle" height="100%" width="5" radiusX="1.5" radiusY="1.5" x="-10" alpha="1">
+		<s:fill>
+			<s:SolidColor color="0xcae3e3" />
+		</s:fill>
+		<s:filters>
+			<s:DropShadowFilter distance="1.5" blurX="1.5" blurY="1.5" alpha="0.8" quality="3"/>
+			<s:BevelFilter blurX="1.5" blurY="1.5" distance="1" quality="3" />
+		</s:filters>
+	</s:Rect>
+	
+	<s:Rect id="rightPaddle" height="100%" width="5" radiusX="1.5" radiusY="1.5" x="560" alpha="1">
+		<s:fill>
+			<s:SolidColor color="0xcae3e3" />
+		</s:fill>
+		<s:filters>
+			<s:DropShadowFilter distance="1.5" blurX="1.5" blurY="1.5" alpha="0.8" quality="3"/>
+			<s:BevelFilter blurX="1.5" blurY="1.5" distance="1" quality="3" />
+		</s:filters>
+	</s:Rect>
+	
+	<mx:Canvas id="mask" cornerRadius="4" top="0" bottom="0" left="0" right="0" backgroundColor="#FFFFFF" />
+	
+</s:Group>

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 creationComplete="init(event)" 
+		 width="{VarManager.MENU_WIDTH}"
+		 height="{VarManager.MENU_HEIGHT}">
+	
+	<fx:Metadata>
+		[Event(type="pv3d.events.CubeEvent", name="cubeOver")]
+		[Event(type="pv3d.events.CubeEvent", name="cubeOut")]
+		[Event(type="pv3d.events.CubeEvent", name="cubeClick")]
+		[Event(type="pv3d.events.CubeEvent", name="cubeMove")]
+		[Event(type="pv3d.events.CubeEvent", name="cubePress")]
+		[Event(type="pv3d.events.CubeEvent", name="cubeRelease")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenMax;
+			import com.greensock.plugins.GlowFilterPlugin;
+			import com.greensock.plugins.TweenPlugin;
+			
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			
+			import pv3d.events.CubeEvent;
+			
+			import spark.components.Label;
+			
+			import utils.VarManager;
+			
+			private var cubeMenu:CubeMenu;
+			
+			private var labels:Array;
+			private var faces:Array;
+			private var labelWidths:Array;
+			private var labelAngles:Array;
+			
+			private var radius:Number = 45;
+			
+			private var _hidden:Boolean = false;
+			
+			protected function init(event:FlexEvent):void
+			{
+				faces = VarManager.CUBE_FACES.slice(1);
+				labelWidths = VarManager.MENU_LABELS_WIDTH;
+				labelAngles = [0, -45, -90, -135, -180];
+				
+				TweenPlugin.activate([GlowFilterPlugin]);
+				
+				cubeMenu = new CubeMenu();
+				container3d.rawChildren.addChild(cubeMenu);
+				
+				initTexts();
+				
+				cubeMenu.addEventListener(CubeEvent.CUBE_CLICK, cubeMouseClick);
+				cubeMenu.addEventListener(CubeEvent.CUBE_MOVE, cubeMouseMove);
+				cubeMenu.addEventListener(CubeEvent.CUBE_OUT, cubeMouseOut);
+				cubeMenu.addEventListener(CubeEvent.CUBE_PRESS, dispatchEvent);
+				cubeMenu.addEventListener(CubeEvent.CUBE_OVER, dispatchEvent);
+				cubeMenu.addEventListener(CubeEvent.CUBE_REALESE, dispatchEvent);
+			}
+			
+			protected function initTexts():void
+			{
+				labels = new Array();
+				
+				for(var i:int = 0; i < faces.length; i++)
+				{
+					var label:Label = new Label();
+					label.width = labelWidths[i];
+					label.height = 35;
+					label.mouseChildren = false;
+					label.mouseEnabled = false;
+					
+					label.id = faces[i];
+					
+					label.text = "CUBE TEXT ELEMENT "+label.id.toUpperCase();
+					
+					label.setStyle("fontFamily", "Typodermic");
+					label.setStyle("fontSize", 20);
+					label.setStyle("color", 0xFFFFFF);
+					label.setStyle("lineHeight", 18);
+					label.setStyle("verticalAlign", "middle");
+					
+					var angle:Number = Math.PI/4 * i;
+					
+					label.rotation = angle * 180/Math.PI;
+					label.x = radius * Math.cos(angle) + (label.height/2) * Math.cos(Math.PI/2-angle);
+					label.y = radius * Math.sin(angle) - (label.height/2) * Math.sin(Math.PI/2-angle);
+					
+					label.alpha = 0;
+					
+					labels.push(label);
+					
+					textContainer.addElement(label);
+					textContainer.visible = false;
+				}
+				
+				textContainer.rotation = -270;
+			}
+			
+			protected function cubeMouseMove(event:CubeEvent):void
+			{
+				var index:int = faces.indexOf( event.face3D.toLocaleLowerCase() );
+				
+				if(index >= 0 && !hidden)
+				{
+					textContainer.visible = true;
+					TweenMax.to(textContainer, 0.5, { rotation: labelAngles[index] });
+					
+					var label:Label;
+					var i:int;
+					
+					for(i = index-1; i >= 0 ; i--)
+					{
+						label = labels[i] as Label;
+						
+						TweenMax.to(label, 0.3, { 
+							alpha: 1 - 0.28*(index-i), 
+							glowFilter: {color:0xffffff, alpha: 0, blurX:0, blurY:0, strength:0, quality:3} 
+						});
+					}
+					
+					label = labels[ index ] as Label;
+					event.faceLabel = label;
+					
+					TweenMax.to(label, 0.3, { 
+						alpha: 1, 
+						glowFilter:{color:0xffffff, alpha:0.8, blurX:2, blurY:2, strength:1, quality:3}
+					});
+					
+					for(i = index+1; i < labels.length; i++)
+					{
+						label = labels[i] as Label;
+						
+						TweenMax.to(label, 0.3, { 
+							alpha: 1 - 0.28*(i-index),
+							glowFilter: {color:0xffffff, alpha: 0, blurX:0, blurY:0, strength:0, quality:3}
+						});
+					}
+				}
+				
+				this.dispatchEvent(event);
+			}
+			
+			protected function cubeMouseOut(event:CubeEvent):void
+			{
+				TweenMax.to(textContainer, 0.5, { rotation: -270 });
+				
+				for(var i:int = 0; i < labels.length; i++)
+				{
+					var label:Label = labels[i] as Label;
+					TweenMax.to(label, 0.5, { 
+						alpha: 0,
+						onComplete: function():void
+						{
+							textContainer.visible = false;
+						}
+					});
+				}
+				
+				this.dispatchEvent(event);
+			}
+			
+			protected function cubeMouseClick(event:CubeEvent):void
+			{
+				var index:int = faces.indexOf( event.face3D.toLocaleLowerCase() );
+				var label:Label = labels[ index ] as Label;
+				event.faceLabel = label;
+				
+				this.dispatchEvent(event);			
+			}
+			
+			public function setLabelByFace(label:String,face:String):void
+			{
+				if(labels)
+				{
+					var currentLabel:Label = labels[ faces.indexOf(face) ];
+					currentLabel.text = label;
+				}
+				
+			}
+			
+			public function getLabelByFace(face:String):String
+			{
+				var currentLabel:Label = labels[ faces.indexOf(face) ];
+				return currentLabel.text;
+			}
+			
+			public function hideCube():void
+			{
+				if(!_hidden)
+				{
+					_hidden = true;
+					cubeMenu.hideCube();
+					
+					TweenMax.to(textContainer, 0.5, { 
+						rotation: -270,
+						onComplete: function():void
+						{
+							textContainer.visible = false;
+						}
+					});
+					
+					for(var i:int = 0; i < labels.length; i++)
+					{
+						var label:Label = labels[i] as Label;
+						TweenMax.to(label, 0.5, { alpha: 0 });
+					}
+				}
+			}
+			
+			public function showCube():void
+			{
+				if(_hidden)
+				{
+					_hidden = false;
+					cubeMenu.showCube();
+				}
+			}
+			
+			public function get hidden():Boolean
+			{
+				return _hidden;
+			}
+		]]>
+	</fx:Script>
+	
+	<mx:Canvas id="container3d" width="{VarManager.MENU_WIDTH}" height="{VarManager.MENU_HEIGHT}"/>
+	
+	<s:Group id="textContainer" x="{FlexGlobals.topLevelApplication.width/2}" y="{FlexGlobals.topLevelApplication.height/2}" 
+			 />
+	
+</s:Group>

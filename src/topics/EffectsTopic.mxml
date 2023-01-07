@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:components="components.*"
+		 xmlns:topics="topics.*"
+		 creationComplete="init(event)">
+	
+	<fx:Declarations>
+		<fx:XML id="xmlData" source="assets/effects/effects.xml" />
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenMax;
+			
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			
+			import utils.LibManager;
+			
+			private var currentSubTopics:Vector.<SubTopic>;
+			
+			private var libManager:LibManager;
+			
+			private var i:int;
+			
+			protected function init(event:FlexEvent):void
+			{												
+				initTexts();
+			}
+			
+			protected function initTexts():void
+			{
+				currentSubTopics = new Vector.<SubTopic>();
+				
+				for(i = 0; i < xmlData.subTopic.length(); i++)
+				{					
+					var htmlTextFlow:String = xmlData.subTopic[i].toString();
+					
+					var subTopic:SubTopic = new SubTopic()
+					subTopic.htmlText = htmlTextFlow;
+					
+					subTopic.label = xmlData.subTopic[i].@title;
+					
+					if(xmlData.subTopic[i].@figureSymbol!="")
+					{
+						var source:String = xmlData.@source +"/"+ xmlData.subTopic[i].@figureSymbol +".jpg";
+						var label:String = xmlData.subTopic[i].@figureLabel;
+						
+						subTopic.setFigureData( source, label);
+						subTopic.label = xmlData.subTopic[i].@title;
+					}
+					
+					if(xmlData.subTopic[i].@figureSymbol=="")
+					{
+						subTopic.setFigureData( "", "");
+					}
+										
+					currentSubTopics.push(subTopic);
+				}	
+				container.subTopics = currentSubTopics;
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Scroller width="100%" height="100%" horizontalScrollPolicy="on" verticalScrollPolicy="on">
+		<s:Group >
+			<topics:SubtopicsContainer id="container" width="100%" height="100%" />
+		</s:Group>
+	</s:Scroller>
+	
+</s:Group>

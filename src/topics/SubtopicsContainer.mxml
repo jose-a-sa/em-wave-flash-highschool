@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 creationComplete="init(event)" xmlns:local="*" >
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			private var _subTopics:Vector.<SubTopic>;
+			
+			protected function init(event:FlexEvent):void
+			{
+				if(!_subTopics)
+				{
+					_subTopics = new Vector.<SubTopic>();
+				}
+			}
+			
+			public function get subTopics():Vector.<SubTopic>
+			{
+				return _subTopics;
+			}
+			
+			public function set subTopics(value:Vector.<SubTopic>):void
+			{
+				_subTopics = value;
+				
+				arrangeSubTopics();
+			}
+			
+			public function addSubTopic(subTopic:SubTopic):void
+			{
+				_subTopics.push(subTopic);
+				
+				arrangeSubTopics();
+			}
+			
+			protected function arrangeSubTopics():void
+			{
+				container.removeAllElements();
+				
+				for(var i:int = 0; i < _subTopics.length; i++)
+				{
+					_subTopics[i].percentWidth = 100;
+					_subTopics[i].percentHeight = 100;
+					container.addElement(_subTopics[i]);
+				}
+				
+				controlsButtons();
+				updateLabels();
+			}			
+			
+			protected function previusSubTopic():void
+			{
+				var index:int = container.selectedIndex;
+				
+				_subTopics[index-1].setStyle("showEffect", leftShowEffect);
+				_subTopics[index].setStyle("hideEffect", rightHideEffect);	
+				
+				container.selectedIndex--;
+				
+				controlsButtons();
+				updateLabels()
+			}
+			
+			protected function nextSubTopic():void
+			{
+				var index:int = container.selectedIndex;
+				
+				_subTopics[index+1].setStyle("showEffect", rightShowEffect);
+				_subTopics[index].setStyle("hideEffect", leftHideEffect);
+				
+				container.selectedIndex++;
+				
+				controlsButtons();
+				updateLabels();
+			}
+			
+			private function controlsButtons():void
+			{
+				if(leftButton)
+				{
+					leftButton.enabled = container.selectedIndex > 0;
+				}
+				if(rightButton)
+				{
+					rightButton.enabled = container.selectedIndex < container.numElements - 1;
+				}
+			}
+			
+			private function updateLabels():void
+			{
+				titleLabel.text = container.selectedChild.label;
+				statusLabel.text = "Slide "+(container.selectedIndex+1)+" de "+container.numElements;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:layout>
+		<s:VerticalLayout gap="5" />
+	</s:layout>
+	
+	<fx:Declarations>
+		<s:Move id="leftShowEffect" xFrom="{-container.width}" xTo="0" />
+		<s:Move id="leftHideEffect" xFrom="0" xTo="{-container.width}" />
+		<s:Move id="rightShowEffect" xFrom="{container.width}" xTo="0" />
+		<s:Move id="rightHideEffect" xFrom="0" xTo="{container.width}" />
+	</fx:Declarations>
+	
+	<s:HGroup height="100%" width="100%" >
+		
+		<s:Button id="leftButton" skinClass="skins.ArrowButton" height="100%" buttonMode="true" 
+				  click="previusSubTopic()" creationComplete="controlsButtons()"/>
+		
+		<mx:ViewStack id="container" width="100%" height="100%" creationPolicy="all"/>
+		
+		<s:Button id="rightButton" skinClass="skins.ArrowButton" height="100%" rotation="180" buttonMode="true" 
+				  click="nextSubTopic()" creationComplete="controlsButtons()" />
+		
+	</s:HGroup>
+	
+	<s:Group height="30" width="100%" >
+		<s:Label id="titleLabel" fontFamily="Myriad Pro Semibold" fontSize="16"
+				 left="75" bottom="0" top="2" verticalAlign="middle"/>
+		<s:Label id="statusLabel" fontFamily="Myriad Pro Semibold" fontSize="16"
+				 right="55" bottom="0" top="2" verticalAlign="middle"/>
+	</s:Group>
+	
+</s:Group>

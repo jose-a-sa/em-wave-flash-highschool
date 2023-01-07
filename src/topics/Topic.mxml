@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 >
+	
+	<fx:Metadata>
+		[Event(type="topics.events.TopicEvent",name="topicClick")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import topics.events.TopicEvent;
+			
+			[Bindable] public var topicCharacter:String;
+			[Bindable] public var topicTitle:String;
+
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				var eventObj:TopicEvent = new TopicEvent(TopicEvent.TOPIC_CLICK);
+				eventObj.topicTitle = this.topicTitle;
+				eventObj.topicCharacter = this.topicCharacter;
+				
+				this.dispatchEvent(eventObj);
+			}
+
+			protected function showMouseOverEffect():void
+			{
+				var label:Label = getElementAt(1) as Label;
+				label.setStyle("textDecoration","underline");
+			}
+
+			protected function hideMouseOverEffect():void
+			{
+				var label:Label = getElementAt(1) as Label
+				label.setStyle("textDecoration","none");
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Button skinClass="skins.LabelButton" label="{topicCharacter}" fontSize="30" color="0xFFFFFF" buttonMode="true" 
+			  click="button1_clickHandler(event)" minWidth="12" mouseDown="hideMouseOverEffect()" mouseOut="hideMouseOverEffect()"
+			  mouseOver="showMouseOverEffect()" mouseUp="showMouseOverEffect()"/>
+	<s:Label left="27" bottom="0" top="4" text="{topicTitle}"
+			 fontFamily="Myriad Pro Italic" fontSize="15" color="0xFFFFFF" verticalAlign="middle" />
+	
+</s:Group>

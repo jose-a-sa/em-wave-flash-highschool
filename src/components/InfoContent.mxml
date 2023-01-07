@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:components="components.*"
+		 minWidth="41" minHeight="41">
+	
+	<fx:Metadata>
+		[Event(type="flash.events.Event",name="showContent")]
+		[Event(type="flash.events.Event",name="showContentComplete")]
+		[Event(type="flash.events.Event",name="hideContent")]
+		[Event(type="flash.events.Event",name="hideContentComplete")]
+	</fx:Metadata>
+	
+	<s:filters>
+		<s:DropShadowFilter />
+	</s:filters>
+	
+	<s:states>
+		<s:State name="hidden" />
+		<s:State name="normal" />
+	</s:states>
+	
+	<s:transitions>
+		<s:Transition fromState="hidden" toState="normal" >
+			<s:Sequence duration="500" effectStart="{_inTransition=true}" 
+						effectEnd="{_inTransition=false; dispatchEvent(new Event('showContentComplete'))}" >
+				<s:Parallel>
+					<s:Resize target="{this}" />
+					<s:Fade target="{backgroundRect}" />
+				</s:Parallel>
+				<s:AddAction target="{infoList}"/>
+				<s:Fade target="{infoList}" />
+			</s:Sequence>
+		</s:Transition>
+		<s:Transition fromState="normal" toState="hidden">
+			<s:Sequence duration="500" effectStart="{_inTransition=true}" 
+						effectEnd="{_inTransition=false; dispatchEvent(new Event('hideContentComplete'))}" >
+				<s:Fade target="{infoList}" />
+				<s:Parallel>
+					<s:Resize target="{this}" />
+					<s:Fade target="{backgroundRect}" />
+				</s:Parallel>
+			</s:Sequence>
+		</s:Transition>
+	</s:transitions>
+	
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.elements.TextFlow;
+			
+			import mx.containers.Form;
+			import mx.events.FlexEvent;
+			
+			import skins.LabelButton;
+			
+			import spark.components.RichText;
+			import spark.utils.TextFlowUtil;
+			
+			import utils.AppManager;
+			import utils.VarManager;
+			
+			private var _inTransition:Boolean = false;
+			
+			private var checkTipSelectedInitial:Boolean = true;
+			
+			protected function infoList_creationCompleteHandler(event:FlexEvent):void
+			{
+				var i:int;
+				
+				for(i = 0; i < infoXML.children().length(); i++)
+				{
+					if( i==0 && !infoList.contains(toolTipCheckContainer) )
+						infoList.addElement(toolTipCheckContainer);
+					
+					var content:Form = new Form();
+					content.label = infoXML.flow[i].@label.toString();
+					content.setStyle("paddingLeft", 12);
+					content.setStyle("paddingRight", 12);
+					content.setStyle("paddingTop", 12);
+					content.setStyle("paddingBottom", 12);
+					
+					var result:String = "<TextFlow xmlns='http://ns.adobe.com/textLayout/2008'>"
+						+ infoXML.flow[i].toString() + "</TextFlow>";
+					
+					var flow:TextFlow = TextFlowUtil.importFromString(result);
+					
+					var richText:RichText = new RichText();
+					richText.textFlow = flow;
+					richText.width = 250;
+					richText.setStyle("color", 0x0D0D0D);
+					content.addElement(richText);	
+						
+					infoList.addElement(content);
+				}							
+			}
+			
+			public function hide():void
+			{
+				currentState = "hidden";
+			}
+			
+			public function get hidden():Boolean
+			{
+				return currentState=="hidden";
+			}
+			
+			private function changeState():void
+			{
+				if(!_inTransition && this.dispatchEvent(new Event(currentState=="normal" ? "hideContent" : "showContent", false, true)))
+				{
+					currentState = currentState == "normal" ? "hidden" : "normal";
+				}
+			}
+			
+			public function setTooltips():void
+			{
+				var selected:Boolean = tooltipCheck ? tooltipCheck.selected : checkTipSelectedInitial;					
+				
+				if(selected)
+				{
+					if(AppManager.isMechWave)
+					{
+						AppManager.bottomSliderTip = VarManager.MECH_BOTTOM_SLIDER_TIP;
+						AppManager.leftSliderTip = VarManager.MECH_LEFT_SLIDER_TIP;
+						AppManager.rightSliderTip = VarManager.MECH_RIGHT_SLIDER_TIP;
+					}
+					else if(AppManager.isEMWave)
+					{
+						AppManager.bottomSliderTip = VarManager.EM_BOTTOM_SLIDER_TIP;
+						AppManager.leftSliderTip = VarManager.EM_LEFT_SLIDER_TIP;
+						AppManager.rightSliderTip = VarManager.EM_RIGHT_SLIDER_TIP;
+					}
+					AppManager.colorChangerTip = VarManager.COLOR_CHANGER_TIP;
+					AppManager.infoContentTip = VarManager.INFO_CONTENT_TIP;
+				}
+				else
+				{
+					AppManager.bottomSliderTip = "";
+					AppManager.leftSliderTip = "";
+					AppManager.rightSliderTip = "";
+					
+					AppManager.colorChangerTip = "";
+					AppManager.infoContentTip = "";
+				}
+			}			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<fx:XML id="infoXML" source="assets/infoContent.xml" />
+		
+		<mx:Form id="toolTipCheckContainer" label="MOSTRAR INFORMAÇÂO ADICIONAL" paddingBottom="12" paddingLeft="12" paddingRight="12" paddingTop="12" >
+			<s:VGroup>
+				<s:RichText width="250" color="0x0D0D0D">
+					<s:p>Para receber mais informações, quando o cursor passar por cima de outros objectos, marque o 
+						<s:span fontFamily="Myriad Pro Italic">checkbox</s:span>:</s:p>
+				</s:RichText>
+				<s:CheckBox id="tooltipCheck" label="Mostrar informações extra" selected="true" buttonMode="true"
+							creationComplete="setTooltips()" change="setTooltips()"/>
+			</s:VGroup>
+		</mx:Form>
+	</fx:Declarations>
+	
+	<s:Rect id="backgroundRect" top="0" bottom="0" right="0" left="0" radiusX="10" radiusY="10" alpha.normal="1" alpha.hidden="0" >
+		<s:fill>
+			<s:SolidColor color="0xFFFFFF" />
+		</s:fill>
+	</s:Rect>
+	
+	<components:Accordion id="infoList" top="15" right="20" bottom="15" left="15" width="250" includeIn="normal" 
+						  creationComplete="infoList_creationCompleteHandler(event)" alpha.normal="1" alpha.hidden="0"
+						  resizeToContent="true" >
+		
+		
+	</components:Accordion>
+	
+	<s:Button id="toogleButton" label="?" skinClass="skins.LabelButton" color.normal="0x0D0D0D" color.hidden="0xFFFFFF" fontSize="36"
+			  top="8" right="12" buttonMode="true" click="changeState()" toolTip.hidden="{AppManager.infoContentTip}"/>
+	
+</s:Group>

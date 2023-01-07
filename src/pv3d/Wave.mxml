@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 creationComplete="init(event)" xmlns:components="components.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenMax;
+			
+			import mx.containers.Canvas;
+			import mx.events.FlexEvent;
+			import mx.managers.ToolTipManager;
+			
+			import pv3d.core.Base3D;
+			import pv3d.events.WaveEvent;
+			
+			import spark.components.supportClasses.SliderBase;
+			
+			import utils.AppManager;
+			import utils.VarManager;
+			
+			protected var mechWave:MechWaveAnimation;
+			protected var emWave:EMWaveAnimation;
+			protected var currentWave:Base3D;
+			protected var containerPv3d:Canvas;
+			
+			private var _emHidding:Boolean = false;
+			private var _mechHidding:Boolean = false;
+			
+			[Bindable] private var _waveChanging:Boolean = false;
+			
+			protected function init(event:FlexEvent):void
+			{				
+				_waveChanging = false;
+				
+				containerPv3d = new Canvas();
+				containerPv3d.percentWidth = 100;
+				containerPv3d.percentHeight = 100;
+				this.addElementAt(containerPv3d, 0);
+				
+				mechWaveInit();
+				
+				showControls();
+			}
+			
+			protected function mechWaveInit():void
+			{
+				AppManager.isMechWave = true;
+				AppManager.isEMWave = false;
+				
+				if(emWave)
+				{
+					emWave.hideWave();
+				}
+				
+				if(!mechWave)
+				{
+					mechWave = new MechWaveAnimation();
+				}
+				currentWave = mechWave;
+				
+				containerPv3d.rawChildren.addChild(mechWave);
+				changeMovBtn.label = mechWave.changeTypeLabel;
+				
+				mechWave.showWave();
+				
+				mechWave.addEventListener(WaveEvent.CHANGE_MOV, mechWaveEventHandler);
+				mechWave.addEventListener(WaveEvent.CHANGE_MOV_FINISH, mechWaveEventHandler);
+				mechWave.addEventListener(WaveEvent.HIDDING, mechWaveEventHandler);
+				mechWave.addEventListener(WaveEvent.HIDDING_FINISH, mechWaveEventHandler);
+				
+				quickReset(false);
+				reset();
+				
+				TweenMax.to(changeMovBtn, 0.750, {top:10});
+			}
+			
+			protected function emWaveInit():void
+			{
+				AppManager.isMechWave = false;
+				AppManager.isEMWave = true;
+				
+				if(mechWave)
+				{
+					mechWave.hideWave();
+				}
+				
+				if(!emWave)
+				{
+					emWave = new EMWaveAnimation();
+				}
+				currentWave = emWave;
+				
+				containerPv3d.rawChildren.addChild(emWave);
+				
+				emWave.showWave();
+				emWave.resetLines();
+				
+				emWave.addEventListener(WaveEvent.HIDDING, mechWaveEventHandler);
+				emWave.addEventListener(WaveEvent.HIDDING_FINISH, mechWaveEventHandler);
+				
+				quickReset(false);
+				reset();
+				
+				TweenMax.to(changeMovBtn, 0.750, {top:-changeMovBtn.height-10});
+			}
+			
+			
+			public function showControls():void
+			{
+				TweenMax.to(rightSlider, 0.750, {right: 0});
+				TweenMax.to(leftSlider, 0.750, {left: 0});
+				TweenMax.to(bottomSlider, 0.750, {bottom: 0});
+				
+				if(isMechWave)
+				{
+					TweenMax.to(changeMovBtn, 0.750, {top: 10});
+				}
+			}
+			
+			public function hideControls():void
+			{
+				TweenMax.to(rightSlider, 0.750, {right:-rightSlider.width-10});
+				TweenMax.to(leftSlider, 0.750, {left:-leftSlider.width-10});
+				TweenMax.to(bottomSlider, 0.750, {bottom:-bottomSlider.height-10});
+				TweenMax.to(changeMovBtn, 0.750, {top:-changeMovBtn.height-10});
+			}
+			
+			public function reset():void
+			{
+				var valuesObj:Object = resetValues(false);	
+				
+				var rightSliderObj:Object = valuesObj.rightSlider;
+				var leftSliderObj:Object = valuesObj.leftSlider;
+				var bottomSliderObj:Object = valuesObj.bottomSlider;
+				
+				var tweenObj:Object = isMechWave ? 
+					{amplitude: rightSliderObj.value, frequence: leftSliderObj.value, waveRotation: bottomSliderObj.value}
+					: {waveRotationX: rightSliderObj.value, frequence: leftSliderObj.value, waveRotationY: bottomSliderObj.value};
+				
+				TweenMax.to(currentWave, 0.750, tweenObj);
+				
+				if(rightSlider && leftSlider && bottomSlider)
+				{
+					TweenMax.to(rightSlider, 0.750, rightSliderObj);
+					TweenMax.to(leftSlider, 0.750, leftSliderObj);
+					TweenMax.to(bottomSlider, 0.750, bottomSliderObj);
+				}
+			}
+			
+			private function quickReset(includingValues:Boolean=true):void
+			{
+				var valuesObj:Object = resetValues();	
+				
+				var rightSliderObj:Object = valuesObj.rightSlider;
+				var leftSliderObj:Object = valuesObj.leftSlider;
+				var bottomSliderObj:Object = valuesObj.bottomSlider;
+				
+				var objs:Array = [rightSliderObj,leftSliderObj,bottomSliderObj];
+				var sliders:Vector.<SliderBase> = new Vector.<SliderBase>();
+				sliders.push(rightSlider);
+				sliders.push(leftSlider);
+				sliders.push(bottomSlider);
+				
+				for(var i:uint = 0; i < objs.length; i++)
+				{
+					for(var prop:String in objs[i])
+					{
+						if(!includingValues && prop == "value") 
+						{
+							continue;
+						}
+						
+						if(sliders[i] && sliders[i].hasOwnProperty(prop))
+						{
+							sliders[i][prop] = objs[i][prop];
+						}
+					}
+				}
+			}
+			
+			private function resetValues(onlyValues:Boolean=false):Object
+			{
+				var valueRight:Number = isMechWave ? VarManager.MECH_START_AMPLITUDE : VarManager.EM_START_ROTATION_X;
+				var maxRight:Number = isMechWave ? VarManager.MECH_MAX_AMPLITUDE : VarManager.EM_MAX_ROTATION_X;
+				var minRight:Number = isMechWave ? VarManager.MECH_MIN_AMPLITUDE : VarManager.EM_MIN_ROTATION_X; 
+				
+				var valueLeft:Number = isMechWave ? VarManager.MECH_START_FREQUENCY : VarManager.EM_START_FREQUENCY;
+				var maxLeft:Number = isMechWave ? VarManager.MECH_MAX_FREQUENCY : VarManager.EM_MAX_FREQUENCY;
+				var minLeft:Number = isMechWave ? VarManager.MECH_MIN_FREQUENCY : VarManager.EM_MIN_FREQUENCY;
+				
+				var valueBottom:Number = isMechWave ? VarManager.MECH_START_ROTATION : VarManager.EM_START_ROTATION_Y;
+				var maxBottom:Number = isMechWave ? VarManager.MECH_MAX_ROTATION : VarManager.EM_MAX_ROTATION_Y;
+				var minBottom:Number = isMechWave ? VarManager.MECH_MIN_ROTATION : VarManager.EM_MIN_ROTATION_Y;
+				
+				var rightSliderObj:Object = onlyValues ? {value: valueRight} : {value: valueRight, maximum: maxRight, minimum: minRight};
+				var leftSliderObj:Object = onlyValues ? {value: valueLeft} : {value: valueLeft, maximum: maxLeft, minimum: minLeft};
+				var bottomSliderObj:Object = onlyValues ? {value: valueBottom} : {value: valueBottom, maximum: maxBottom, minimum: minBottom};
+				
+				var returnObj:Object = {
+					rightSlider: rightSliderObj,
+					leftSlider: leftSliderObj,
+					bottomSlider: bottomSliderObj
+				};
+				
+				return returnObj;
+			}
+			
+			//WAVES  
+			
+			protected function mechWaveEventHandler(event:WaveEvent):void
+			{
+				switch(event.type)
+				{
+					case "changeMov":
+						_waveChanging = true;
+						break;
+					case "changeMovFinish":
+						_waveChanging = false;
+						changeMovBtn.label = mechWave.changeTypeLabel;
+						break;
+					case "hidding":
+						_mechHidding = true;
+						break;
+					case "hiddingFinish":
+						_mechHidding = false;
+						break;
+				}
+			}
+			
+			protected function emWaveEventHandler(event:WaveEvent):void
+			{
+				switch(event.type)
+				{
+					case "hidding":
+						_emHidding = true;
+						break;
+					case "hiddingFinish":
+						_emHidding = false;
+						break;
+				}
+			}
+			
+			public function set ambientColor(value:uint):void
+			{
+				if(currentWave is MechWaveAnimation)
+				{
+					mechWave.ambientColor = value;
+				}
+			}
+			
+			public function get ambientColor():uint
+			{
+				if(currentWave is MechWaveAnimation)
+				{
+					return mechWave.ambientColor;
+				}
+				else
+				{
+					return NaN;
+				}
+			}
+			
+			public function changeWave():void
+			{
+				if(!_mechHidding && isMechWave)
+				{
+					emWaveInit();
+				}
+				else if(!_emHidding && isEMWave)
+				{
+					mechWaveInit();
+				}
+			}
+			
+			public function hideWave():void
+			{
+				if(isMechWave)
+				{
+					mechWave.hideWave();
+				}
+				else if(isEMWave)
+				{
+					emWave.hideWave();
+				}
+			}
+			
+			public function showWave():void
+			{
+				if(isMechWave)
+				{
+					mechWave.showWave();
+				}
+				else if(isEMWave)
+				{
+					emWave.showWave();
+				}
+			}
+			
+			public function get hidden():Boolean
+			{
+				if(isMechWave)
+				{
+					return mechWave.hidden;
+				}
+				else if(isEMWave)
+				{
+					return emWave.hidden;
+				}
+				return true;
+			}
+			
+			public function get isMechWave():Boolean
+			{
+				return currentWave is MechWaveAnimation;
+			}
+			
+			public function get isEMWave():Boolean
+			{
+				return currentWave is EMWaveAnimation;
+			}
+			
+			private function get inTransition():Boolean
+			{
+				var objects:Array = [rightSlider,leftSlider,bottomSlider,changeMovBtn];
+				
+				for(var i:int=0; i<objects.length; i++)
+				{
+					if(TweenMax.isTweening(objects[i]))
+					{
+						return true;
+					}
+				}
+				
+				return false;
+			}
+			
+			//CONTROLS
+			
+			protected function changeMovBtn_clickHandler(event:MouseEvent):void
+			{
+				if(!inTransition)
+				{
+					changeMovementType();
+				}
+			}
+			
+			protected function changeMovementType():void
+			{
+				if(isMechWave)
+				{
+					var nextMov:String = mechWave.currentMovementType == MechWaveAnimation.LONGITUDINAL ?
+						MechWaveAnimation.TRANSVERSAL : MechWaveAnimation.LONGITUDINAL;
+					mechWave.changeMovementType(nextMov);
+				}
+			}
+			
+			protected function slider_changeHandler(event:Event):void
+			{
+				var slider:SliderBase = event.currentTarget as SliderBase;
+				
+				if(isMechWave)
+				{
+					setMechProperties(slider);
+				}
+				else if(isEMWave)
+				{
+					setEMProperties(slider);
+				}
+			}
+			
+			protected function setEMProperties(slider:SliderBase):void
+			{
+				switch(slider.id)
+				{
+					case "rightSlider":
+						emWave.waveRotationX = slider.value;
+						break;
+					case "leftSlider":
+						emWave.setFrequence(slider.value);
+						break;
+					case "bottomSlider":
+						emWave.waveRotationY = slider.value;
+						break;
+				}
+			}
+			
+			protected function setMechProperties(slider:SliderBase):void
+			{
+				switch(slider.id)
+				{
+					case "rightSlider":
+						mechWave.amplitude = slider.value;
+						break;
+					case "leftSlider":
+						mechWave.frequence = slider.value;
+						break;
+					case "bottomSlider":
+						mechWave.waveRotation = slider.value;
+						break;
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Button id="changeMovBtn" click="changeMovBtn_clickHandler(event)"
+			  top="{-changeMovBtn.height-10}" horizontalCenter="0" buttonMode="true"
+			  height="26" fontSize="18" enabled="{!_waveChanging}" skinClass="skins.Button"/>
+	
+	<components:SimpleVSlider id="rightSlider" height="100%" showDataTip="false" orientation="right"
+							  right="{-rightSlider.width-10}"  change="slider_changeHandler(event)" skinClass="skins.SimpleVSliderSkin"
+							  toolTip="{AppManager.rightSliderTip}"/>
+	
+	<components:SimpleVSlider id="leftSlider" height="100%" showDataTip="false" orientation="left" stepSize="0.01"
+							  left="{-leftSlider.width-10}" change="slider_changeHandler(event)" skinClass="skins.SimpleVSliderSkin"
+							  toolTip="{AppManager.leftSliderTip}"/>
+	
+	<components:SimpleHSlider id="bottomSlider" width="100%" showDataTip="false" orientation="bottom"
+							  bottom="{-bottomSlider.height-10}" change="slider_changeHandler(event)" skinClass="skins.SimpleHSliderSkin"
+							  toolTip="{AppManager.bottomSliderTip}"/>
+	
+</s:Group>

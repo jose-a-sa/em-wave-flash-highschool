@@ -1,0 +1,72 @@
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" 
+			 xmlns:fb="http://ns.adobe.com/flashbuilder/2009" blendMode="normal" mouseEnabled="false"
+			 minWidth="76" minHeight="76" alpha.disabled="0.5" alpha.disabledWithControlBar="0.5">
+	
+	<fx:Metadata>
+		<![CDATA[ 
+		/** 
+		* @copy spark.skins.spark.ApplicationSkin#hostComponent
+		*/
+		[HostComponent("spark.components.TitleWindow")]
+		]]>
+	</fx:Metadata> 
+	
+	<!--
+	NOTE: this skin file contains sub-parts that may continue to react to
+	Style code.  To remove this behavior create new copies of those skins
+	and remove the styles.
+	-->
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="inactive" stateGroups="inactiveGroup" />
+		<s:State name="disabled" />
+		<s:State name="normalWithControlBar" stateGroups="withControls" />
+		<s:State name="inactiveWithControlBar" stateGroups="withControls, inactiveGroup" />
+		<s:State name="disabledWithControlBar" stateGroups="withControls" />
+	</s:states>
+	
+	<!--- drop shadow can't be hittable so it stays sibling of other graphics @private-->
+	<s:filters>
+		<s:DropShadowFilter blurX="5" blurY="5" distance="3" quality="3" />
+	</s:filters>
+	
+
+	<s:Rect left="0" right="0" top="0" bottom="0" 
+			topLeftRadiusX="20" topLeftRadiusY="20" topRightRadiusX="20" topRightRadiusY="20" >
+		<s:fill>
+			<s:SolidColor color="0xFFFFFF" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:HGroup left="15" right="15" top="15" bottom="15" gap="10" >
+		
+		<s:Group height="100%">
+			
+			<s:Button id="closeButton" skinClass="skins.CloseButton" width="15" height="15" left="4" buttonMode="true"/>
+						
+			<s:Label id="titleDisplay" maxDisplayedLines="1" rotation="-90" textAlign="center" blendMode="erase" fontFamily="Myriad Pro Bold"
+						 verticalAlign="middle" top="35" bottom="0" fontSize="36" color="#000000" />
+		</s:Group>
+		
+		<s:VGroup width="100%" height="100%" minWidth="0" minHeight="0" gap="0" >
+			
+			<s:Group id="contentGroup" width="100%" height="100%" minWidth="0" minHeight="0">
+			</s:Group>
+			
+			<!--- @private -->
+			<s:Group id="bottomGroup" minWidth="0" minHeight="0" width="100%"
+					 includeIn="withControls" >
+				
+				<!--- @copy spark.components.Panel#controlBarGroup -->
+				<s:Group id="controlBarGroup" width="100%" minWidth="0" minHeight="0">
+					<s:layout>
+						<s:HorizontalLayout paddingLeft="5" paddingRight="5" paddingTop="7" paddingBottom="3" gap="10" />
+					</s:layout>
+				</s:Group>
+			</s:Group>
+			
+		</s:VGroup>	
+		
+	</s:HGroup>
+	
+</s:SparkSkin>

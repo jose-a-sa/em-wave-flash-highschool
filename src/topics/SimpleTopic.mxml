@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:components="components.*"
+		 xmlns:topics="topics.*"
+		 creationComplete="init(event)">
+	
+	<fx:Declarations>
+		<fx:XML id="xmlData" source=""/>
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenMax;
+			
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			
+			import utils.LibManager;
+			
+			private var currentSubTopics:Vector.<SubTopic>;
+			
+			private var libManager:LibManager;
+			
+			private var i:int;
+			
+			protected function init(event:FlexEvent):void
+			{												
+				//libManager = FlexGlobals.topLevelApplication.----
+				
+				if(libManager.loaded)
+					initTexts(true);
+				else
+				{
+					libManager.contentLoaderInfo.addEventListener(Event.INIT, initImages);
+					initTexts();
+				}
+			}
+			
+			protected function initTexts(alsoImages:Boolean=false):void
+			{
+				currentSubTopics = new Vector.<SubTopic>();
+				
+				for(i = 0; i < xmlData.subTopic.length(); i++)
+				{					
+					var htmlTextFlow:String = xmlData.subTopic[i].toString();
+					
+					var subTopic:SubTopic = new SubTopic()
+					subTopic.htmlText = htmlTextFlow;
+					
+					if(alsoImages)
+					{
+						var bitmapData:BitmapData = libManager.getInstance( xmlData.subTopic[i].@figureSymbol ) as BitmapData;
+						var bitmap:Bitmap = new Bitmap(bitmapData);
+						var label:String = xmlData.subTopic[i].@figureLabel;
+						
+						subTopic.setFigureData( bitmap, label);
+						subTopic.label = xmlData.subTopic[i].@title || "";
+					}
+					currentSubTopics.push(subTopic);
+				}	
+				container.subTopics = currentSubTopics;
+			}
+			
+			protected function initImages(event:Event=null):void
+			{
+				for(i = 0; i < currentSubTopics.length; i++)
+				{
+					var bitmapData:BitmapData = libManager.getInstance( xmlData.subTopic[i].@figureSymbol ) as BitmapData;
+					var bitmap:Bitmap = new Bitmap(bitmapData);
+					var label:String = xmlData.subTopic[i].@figureLabel;
+					
+					currentSubTopics[i].setFigureData( bitmap, label);
+				}
+			}		
+		]]>
+	</fx:Script>
+	
+	<s:Scroller width="100%" height="100%" horizontalScrollPolicy="on" verticalScrollPolicy="on">
+		<s:Group >
+			<topics:SubtopicsContainer id="container" width="100%" height="100%" />
+		</s:Group>
+	</s:Scroller>
+	
+</s:Group>

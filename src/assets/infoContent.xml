@@ -1,0 +1,42 @@
+<list>
+
+<flow label="REQUISITOS DO COMPUTADOR"><![CDATA[
+	<p>O <span fontFamily="Myriad Pro Italic">website</span> foi programado num computador com resolução de ecrã de 1366×768, uma vez que, seja necessário, no mínimo, um computador com resolução de <span fontFamily="Myriad Pro Bold">1024×768</span>. Como a página tem componentes animados em num ambiente 3D, o <span fontFamily="Myriad Pro Italic">browser</span> vai utilizar mais o processador, e daí a necessidade de <span fontFamily="Myriad Pro Bold">ter em conta o processador do computador</span> em que este <span fontFamily="Myriad Pro Italic">website</span> é visualizado.</p>
+]]></flow>
+
+<flow label="O MENU : COMO USAR O CUBO ?"><![CDATA[
+	<p>O menu é apresentado como um cubo que aparece no canto superior esquerdo do ecrã e que roda sobre o seu próprios eixos quando o cursor passa por cima. Está calibrado para mostrar 5 das faces, a que correspondem as funcionalidades para o menu:</p>
+	<p> - Mudar a onda para para electromagnética/mecânica</p>
+	<p> - Reiniciar os parâmetros da onda</p>
+	<p> - Mostrar/Ocultar os tópicos de informação</p>
+	<p> - Mostrar/Ocultar as informações do projecto</p>
+	<p> - Mudar para ecrã normal/inteiro</p>
+	<p>Basta passar o cursor em cima do cubo que este mostrará as diferentes opções.</p>
+]]></flow>
+
+<flow label="O QUE ESTÁ A MEXER NO FUNDO ?"><![CDATA[
+	<p>Logo que o <span fontFamily="Myriad Pro Italic">website</span> é aberto, uma animação de uma <span fontFamily="Myriad Pro Bold">onda mecânica</span> transversal (utiliza partículas para se propagar) ocupa o fundo da janela. Essa onda poder ser mudada, através do botão no cimo da janela, para um outro tipo de movimento similar ao das ondas sonora: o movimento longitudinal. No entanto, a representação mais associada a este projecto, que pode ser mudada no cubo: a <span fontFamily="Myriad Pro Bold">onda electromagnéctica.</span></p>
+]]></flow>
+
+<flow label="OS RECTÂNGULOS NOS CANTOS DO ECRÃ"><![CDATA[
+	<p>Existem três rectângulos brancos em cada lado do ecrã, que são nada mais que <span fontFamily="Myriad Pro Italic">sliders</span> que mudam determinados parâmetros das ondas, visualizando-se alterações no seu comportamento. Ao aproximar o cursor desses rectângulos, estes aproximam-se do cursor, sendo mais fácil a interacção. O <span fontFamily="Myriad Pro Italic">slider:</span></p>
+	<p> - de <span fontFamily="Myriad Pro Bold">baixo</span> altera a rotação da direita para a esquerda, em ambas as ondas</p>
+	<p> - da <span fontFamily="Myriad Pro Bold">esquerda</span> altera a frequência com que ambas ondas vibram</p>
+	<p> - da <span fontFamily="Myriad Pro Bold">direita</span> altera a amplitude no caso da onda mecânica, e em rotação de cima para baixo no caso da electromagnéctica</p>
+]]></flow>
+
+<flow label="TÓPICOS DE INFORMAÇÃO DISPONÍVEIS"><![CDATA[
+	<p>Para já estão disponíveis dois tópicos de informação:</p>
+	<p> - <span fontFamily="Myriad Pro Italic">Ondas electromagnéticas</span></p>
+	<p> - <span fontFamily="Myriad Pro Italic">Exposição às radiações</span></p>
+	<p>No entanto, devido à natureza dos <span fontFamily="Myriad Pro Italic">websites,</span> mais tópicos poderão ser adicionados.</p>
+]]></flow>
+
+<flow label="O BOTÃO ARCO-ÍRIS"><![CDATA[
+	<p>Existe um botão no canto inferior direito, que tem como única função, alterar a cor de fundo, para uma totalmente aleatória. Porém, apresenta diferentes comportamentos:</p>
+	<p> - <span fontFamily="Myriad Pro Bold">um click</span> altera a cor uma única vez</p>
+	<p> - <span fontFamily="Myriad Pro Bold">um click duplo</span> activa/desactiva a mudança automática e periódica de cor</p>
+	<p> - <span fontFamily="Myriad Pro Bold">um click prolongado</span> muda a cor para o cinzento escuro inicial.</p>
+]]></flow>
+	   
+</list>

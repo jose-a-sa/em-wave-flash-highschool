@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:components="components.*"
+		 xmlns:topics="topics.*"
+		 creationComplete="init(event)">
+	
+	<fx:Declarations>
+		<fx:XML source="assets/emWaves/emWaves.xml" id="xmlData" />
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenMax;
+			
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			
+			import utils.LibManager;
+			
+			private var libManager:LibManager;
+			
+			private var currentWave:String = EMSpectrum.ALL;
+			private var currentSubTopics:Vector.<SubTopic>;
+			private var menuWaveLabels:Array = EMSpectrum.WAVES_ARRAY;
+			private var waveButtons:Array;
+			
+			private var i:int;
+			
+			protected function init(event:FlexEvent):void
+			{												
+				initTexts();
+			}
+			
+			protected function initTexts():void
+			{
+				currentSubTopics = new Vector.<SubTopic>();
+				
+				for(i = 0; i < xmlData.child(currentWave).subTopic.length(); i++)
+				{					
+					var htmlTextFlow:String = xmlData.child(currentWave).subTopic[i].toString();
+					
+					var subTopic:SubTopic = new SubTopic()
+					subTopic.htmlText = htmlTextFlow;
+					
+					if(xmlData.child(currentWave).subTopic[i].@figureSymbol!="")
+					{
+						var source:String = xmlData.child(currentWave).@source +"/"+ xmlData.child(currentWave).subTopic[i].@figureSymbol +".jpg";
+						var label:String = xmlData.child(currentWave).subTopic[i].@figureLabel;
+						
+						subTopic.setFigureData( source, label);
+						subTopic.label = xmlData.child(currentWave).subTopic[i].@title;
+					}
+					
+					if(xmlData.child(currentWave).subTopic[i].@figureSymbol=="")
+					{
+						subTopic.setFigureData( "", "");
+					}
+					
+					currentSubTopics.push(subTopic);
+				}	
+				container.subTopics = currentSubTopics;
+			}
+			
+			protected function waveMenu_creationCompleteHandler(event:FlexEvent):void
+			{				
+				var i:int;
+				waveButtons = new Array();
+				
+				for(i = 0; i < waveMenu.numElements; i++)
+				{				
+					if(waveMenu.getElementAt(i) is Button)
+					{
+						waveMenu.getElementAt(i).addEventListener(MouseEvent.CLICK, menuBtnClick);
+						waveButtons.push( waveMenu.getElementAt(i) );
+					}
+				}
+				
+				var index:int = waveMenu.getElementIndex( waveButtons[menuWaveLabels.indexOf(currentWave)] as Button);
+				
+				for(i = 0; i < waveMenu.numElements; i++)
+				{
+					if(waveMenu.getElementAt(i) is Label)
+					{
+						var label:Label = waveMenu.getElementAt(i) as Label;
+						var bool:Boolean = waveMenu.getElementIndex(label) != index-1 && waveMenu.getElementIndex(label) != index+1
+						label.setStyle("color", bool ? 0x000000 : 0x00688B);
+						label.alpha = bool ? 0.8 : 1;
+					}
+				}
+			}
+			
+			protected function menuBtnClick(event:MouseEvent):void
+			{
+				if( !TweenMax.isTweening(container) && event.currentTarget!=waveButtons[ menuWaveLabels.indexOf(currentWave) ])
+				{
+					var index:int = waveMenu.getElementIndex(event.currentTarget as Button);
+					
+					for(var i:int = 0; i < waveMenu.numElements; i++)
+					{
+						if(waveMenu.getElementAt(i) is Label)
+						{
+							var label:Label = waveMenu.getElementAt(i) as Label;
+							var bool:Boolean = waveMenu.getElementIndex(label) != index-1 && waveMenu.getElementIndex(label) != index+1
+							label.setStyle("color", bool ? 0x000000 : 0x00688B);
+							label.alpha = bool ? 0.8 : 1;
+						}
+					}
+					
+					var nextWave:String = menuWaveLabels[ waveButtons.indexOf(event.currentTarget as Button) ];
+					
+					TweenMax.to(container, 0.750, {
+						alpha: 0,
+						onComplete: finishHiddingContainer,
+						onCompleteParams: [nextWave]
+					});
+				}
+			}
+			
+			private function finishHiddingContainer(currentWave:String):void
+			{
+				this.currentWave = currentWave;
+				
+				initTexts();
+				
+				emSpectrum.changeSelectedWave( currentWave );
+				
+				TweenMax.to(container, 0.750, {
+					alpha: 1
+				});
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Scroller width="100%" height="100%" horizontalScrollPolicy="on" verticalScrollPolicy="on">
+		<s:Group >
+			<s:VGroup width="100%" height="100%" horizontalAlign="center" gap="15" minHeight="500">
+				
+				<components:EMSpectrum id="emSpectrum"/>
+				
+				<s:HGroup id="waveMenu" creationComplete="waveMenu_creationCompleteHandler(event)">
+					<mx:Spacer width="100%" />
+					<s:Label text="•" fontFamily="Typodermic" fontSize="16" alpha="0.8" />
+					<s:Button skinClass="skins.LabelButton" buttonMode="true" fontSize="16" label="INTRO" />
+					<s:Label text="•" fontFamily="Typodermic" fontSize="16" alpha="0.8" />
+					<s:Button skinClass="skins.LabelButton" buttonMode="true" fontSize="16" label="ONDAS RÁDIO" />
+					<s:Label text="•" fontFamily="Typodermic" fontSize="16" alpha="0.8" />
+					<s:Button skinClass="skins.LabelButton" buttonMode="true" fontSize="16" label="MICROONDAS" />
+					<s:Label text="•" fontFamily="Typodermic" fontSize="16" alpha="0.8" />
+					<s:Button skinClass="skins.LabelButton" buttonMode="true" fontSize="16" label="INFRAVERVELHOS" />
+					<s:Label text="•" fontFamily="Typodermic" fontSize="16" alpha="0.8" />
+					<s:Button skinClass="skins.LabelButton" buttonMode="true" fontSize="16" label="VISÍVEIS" />
+					<s:Label text="•" fontFamily="Typodermic" fontSize="16" alpha="0.8" />
+					<s:Button skinClass="skins.LabelButton" buttonMode="true" fontSize="16" label="ULTRAVIOLETAS" />
+					<s:Label text="•" fontFamily="Typodermic" fontSize="16" alpha="0.8" />
+					<s:Button skinClass="skins.LabelButton" buttonMode="true" fontSize="16" label="RAIOS X" />
+					<s:Label text="•" fontFamily="Typodermic" fontSize="16" alpha="0.8" />
+					<s:Button skinClass="skins.LabelButton" buttonMode="true" fontSize="16" label="RAIOS GAMA" />
+					<s:Label text="•" fontFamily="Typodermic" fontSize="16" alpha="0.8" />
+					<mx:Spacer width="100%" />
+				</s:HGroup>	
+				
+				<topics:SubtopicsContainer id="container" width="100%" height="100%" />
+				
+			</s:VGroup>
+		</s:Group>
+	</s:Scroller>
+	
+</s:Group>

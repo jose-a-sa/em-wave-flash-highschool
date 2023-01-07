@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 creationComplete="init(event)">
+	
+	<s:filters>
+		<s:DropShadowFilter />
+	</s:filters>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenMax;
+			
+			import mx.events.FlexEvent;
+			import mx.utils.HSBColor;
+			
+			import skins.ColorWheelButton;
+			
+			import spark.components.Label;
+			
+			import utils.AppManager;
+			
+			private var labelTimer:Timer;
+			private var autoChangerTimer:Timer;
+			private var mouseDownTimer:Timer;
+			
+			private var label:Label;
+			
+			private const START_COLOR:uint = 0x0D0D0D;
+			private var currentColor:uint = 0x0D0D0D;
+			
+			private var _autoChangeTimeDelay:Number = 15000;
+			private var _preventNextChange:Boolean = false;
+			
+			[Inspectable(enumeration="mech,em",format="String")]
+			public var currentWave:String = "mech";
+			
+			protected function init(event:FlexEvent):void
+			{
+				labelTimer = new Timer(650+500,1);
+				labelTimer.addEventListener(TimerEvent.TIMER_COMPLETE, labelTimerCompleteHandler);
+				
+				autoChangerTimer = new Timer(_autoChangeTimeDelay);
+				autoChangerTimer.addEventListener(TimerEvent.TIMER, changeBackColor);
+				
+				mouseDownTimer = new Timer(2500,1);
+				mouseDownTimer.addEventListener(TimerEvent.TIMER_COMPLETE, mouseDownTimerCompleteHandler);
+				
+				label = new Label();
+				
+				label.alpha = 0;
+				label.top = 3;
+				label.bottom = 0;
+				label.right = 35;
+				
+				label.setStyle("textAlign","center"); 
+				label.setStyle("verticalAlign","middle");
+				label.setStyle("fontFamily","Myriad Pro Italic");
+				label.setStyle("color", 0xFFFFFF);
+				label.setStyle("fontSize", 13);
+				label.maxDisplayedLines = 1;
+			}
+			
+			public function resetToInitialColor():void
+			{
+				if(currentColor != START_COLOR) 
+				{
+					currentColor = START_COLOR;
+					
+					showShortMessage("Mudança para a cor inicial");
+					
+					AppManager.changeAppBackgroundColor( currentColor );
+					
+					preventNextChange();
+				}
+			}
+			
+			protected function showShortMessage(str:String=""):void
+			{
+				label.text = str;
+				
+				if(!this.contains(label))
+				{
+					addElement(label);
+				}
+				
+				labelTimer.reset();
+				labelTimer.start();
+				
+				TweenMax.to( label, 0.5, {
+					alpha:1
+				});
+			}
+			
+			protected function button1_doubleClickHandler(event:MouseEvent):void
+			{
+				if( ! autoChangerTimer.running )
+				{
+					autoChangerTimer.start();
+					
+					showShortMessage("Auto-mudança de cor activada");
+				}
+				else
+				{
+					autoChangerTimer.reset();
+					autoChangerTimer.stop();
+					
+					showShortMessage("Auto-mudança de cor desactivada");
+				}
+			}
+			
+			protected function mouseDownTimerCompleteHandler(event:TimerEvent):void
+			{
+				resetToInitialColor();
+			}
+			
+			protected function labelTimerCompleteHandler(event:TimerEvent):void
+			{
+				labelTimer.reset();
+				labelTimer.stop();
+				
+				TweenMax.to( label, 0.5, {
+					alpha:0, 
+					onComplete: function():void {
+						removeElement(label);
+					}
+				});
+			}
+			
+			protected function changeBackColor(event:Event=null):void
+			{
+				if(!_preventNextChange)
+				{
+					currentColor = getRandomColor();
+					AppManager.changeAppBackgroundColor( currentColor );
+				}
+				else
+				{
+					_preventNextChange = false;
+				}
+			}
+			
+			protected function getRandomColor():uint
+			{
+				var color:uint = Math.random() * 0xFFFFFF;
+				var hsb:HSBColor = HSBColor.convertRGBtoHSB(color);
+				
+				if( currentWave=="em" )
+				{
+					hsb.hue = int(3*Math.random())>0 ? 70*Math.random()+190 : 15*Math.random();
+					hsb.saturation = 0.3 * Math.random() + 0.3;
+					hsb.brightness = 0.4 * Math.random() + 0.2;
+					
+					return HSBColor.convertHSBtoRGB(hsb.hue, hsb.saturation, hsb.brightness);
+				}
+				else
+				{
+					return hsb.saturation > 0.4 && hsb.brightness < 0.6 ? color : getRandomColor();
+				}
+			}
+			
+			public function get autoChangeTimeDelay():Number
+			{
+				return _autoChangeTimeDelay;
+			}
+			
+			[Inspectable]
+			public function set autoChangeTimeDelay(value:Number):void
+			{
+				_autoChangeTimeDelay = value;
+				
+				if(autoChangerTimer)
+				{
+					autoChangerTimer.delay = value;
+				}	
+			}
+			
+			protected function button1_mouseDownHandler(event:MouseEvent):void
+			{
+				mouseDownTimer.start();
+			}
+			
+			
+			protected function button1_mouseOutUpHandler(event:MouseEvent):void
+			{
+				mouseDownTimer.stop();
+				mouseDownTimer.reset();
+			}
+			
+			private function preventNextChange():void
+			{
+				_preventNextChange = true;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:Button skinClass="skins.ColorWheelButton" buttonMode="true" 
+			  click="changeBackColor()"
+			  mouseDown="button1_mouseDownHandler(event)"
+			  mouseOut="button1_mouseOutUpHandler(event)"
+			  mouseUp="button1_mouseOutUpHandler(event)"
+			  doubleClick="button1_doubleClickHandler(event)"
+			  doubleClickEnabled="true" bottom="0" right="0"/>
+	
+</s:Group>

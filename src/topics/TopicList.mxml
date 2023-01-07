@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" 
+		 xmlns:components="components.*"
+		 xmlns:topics="topics.*"
+		 creationComplete="init(event)" 
+		 >
+	
+	<fx:Metadata>
+		[Event(type="topics.events.TopicEvent",name="showTopics")]
+		[Event(type="topics.events.TopicEvent",name="showTopicsComplete")]
+		[Event(type="topics.events.TopicEvent",name="hideTopics")]
+		[Event(type="topics.events.TopicEvent",name="hideTopicsComplete")]
+		[Event(type="topics.events.TopicEvent",name="showContent")]
+		[Event(type="topics.events.TopicEvent",name="showContentComplete")]
+		[Event(type="topics.events.TopicEvent",name="hideContent")]
+		[Event(type="topics.events.TopicEvent",name="hideContentComplete")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenMax;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.events.EffectEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.components.TitleWindow;
+			import spark.effects.Move;
+			
+			import topics.events.TopicEvent;
+			
+			protected var topicList:Vector.<Topic>;
+			private var _hidden:Boolean = true;			
+			
+			private var currentContent:Group = null;
+			private var currentTitle:String;
+			
+			private var topicLabels:Array = [
+				{label:"Ondas electromagnéticas", character:"w", title:"Ondas electromagnéticas"},
+				{label:"Exposição às radiações", character:"m", title:"Exposição às radiações"}
+			];
+			
+			protected function init(event:FlexEvent):void
+			{				
+				topicList = new Vector.<Topic>();
+				
+				for(var i:uint = 0; i < topicLabels.length; i++)
+				{
+					var topic:Topic = new Topic();
+					
+					topic.topicCharacter = topicLabels[i].character;
+					topic.topicTitle = topicLabels[i].label;					
+					topic.addEventListener(TopicEvent.TOPIC_CLICK, topicClickHandler);
+					
+					topicList.push(topic);
+					
+					addElement(topic);
+					
+					topic.top = 275 + 30*i;
+					topic.left = -300;
+				}
+			}
+			
+			protected function topicClickHandler(event:TopicEvent):void
+			{		
+				if( currentContent == null )
+				{
+					showContent(event);
+				}
+			}
+			
+			protected function showContent(event:TopicEvent):void
+			{
+				var eventObj:TopicEvent = new TopicEvent(TopicEvent.SHOW_CONTENT,false,true);
+				eventObj.topicCharacter = event.topicCharacter;
+				eventObj.topicTitle = event.topicTitle;
+				
+				if( this.dispatchEvent(eventObj) )
+				{
+					switch(event.topicCharacter)
+					{
+						case "w":
+							var emTopic:EMWavesTopic = new EMWavesTopic();
+							
+							currentTitle = String(topicLabels[0].title).toUpperCase()											
+							currentContent = emTopic;
+							break;
+						case "m":
+							var effectsTopic:EffectsTopic = new EffectsTopic();
+							
+							currentTitle = String(topicLabels[1].title).toUpperCase()												
+							currentContent = effectsTopic;
+							break;
+					}
+					
+					currentContent.percentWidth = 100;
+					currentContent.percentHeight = 100;
+					
+					windowCloseButtonEnabled = false;
+					
+					container.title = currentTitle;
+					container.visible = true;
+					
+					TweenMax.to(container, 0.5, {
+						bottom: 0,
+						top: 40,
+						onComplete: showContentTopic
+					});
+					
+					hideTopics();
+				}
+			}
+			
+			protected function closeTitleWindow(event:CloseEvent):void
+			{
+				hideContent();				
+			}
+			
+			private function showContentTopic():void
+			{				
+				container.addElement(currentContent);
+				
+				var move:Move = new Move(currentContent);
+				move.yFrom = currentContent.height + 200;
+				move.yTo = 0;
+				move.duration = 750;
+				move.play();
+				
+				move.addEventListener(EffectEvent.EFFECT_END, showContentComplete);
+			}
+			
+			private function showContentComplete(event:Event=null):void
+			{
+				this.dispatchEvent( new TopicEvent(TopicEvent.SHOW_CONTENT_COMPLETE) );
+				windowCloseButtonEnabled = true;
+			}
+			
+			protected function hideContent(event:TopicEvent=null):void
+			{
+				var eventObj:TopicEvent = new TopicEvent(TopicEvent.HIDE_CONTENT,false,true);
+				
+				if( this.dispatchEvent(eventObj) )
+				{
+					TweenMax.to(container, 0.750, {
+						bottom: -(container.height + 200),
+						top: 40 + container.height + 200 + this.height,
+						onComplete: hideContentComplete
+					});
+					
+					windowCloseButtonEnabled = false;
+				}
+			}
+			
+			private function hideContentComplete():void
+			{
+				this.dispatchEvent( new TopicEvent(TopicEvent.HIDE_CONTENT_COMPLETE) );
+				
+				container.removeAllElements();
+				container.visible = false;
+				
+				currentContent = null;
+			}
+			
+			public function showTopics():void
+			{
+				if(_hidden && this.dispatchEvent(new TopicEvent(TopicEvent.SHOW_TOPICS,false, true)))
+				{
+					_hidden = false;
+					
+					for(var i:uint = 0; i < topicList.length; i++)
+					{
+						TweenMax.to(topicList[i], 0.5, {
+							left: 65, 
+							delay: 0.1*i,
+							onCompleteParams: [ i, false],
+							onComplete: completeTransition
+						});
+					}
+				}
+			}
+			
+			public function hideTopics():void
+			{
+				if(!_hidden && this.dispatchEvent(new TopicEvent(TopicEvent.HIDE_TOPICS,false, true)))
+				{
+					for(var i:uint = 0; i < topicList.length; i++)
+					{
+						TweenMax.to(topicList[i], 0.5, {
+							left: -(topicList[i].width + 50),
+							onCompleteParams: [ i, true],
+							onComplete: completeTransition
+						});
+					}
+				}
+			}
+			
+			private function completeTransition(index:uint,value:Boolean):void
+			{
+				_hidden = value;
+				if( index == topicList.length-1 )
+				{
+					this.dispatchEvent(new TopicEvent(value ? TopicEvent.HIDE_TOPICS_COMPLETE : TopicEvent.SHOW_TOPICS_COMPLETE));
+				}	
+			}
+			
+			public function get hidden():Boolean
+			{
+				return _hidden;
+			}
+			
+			public function get inTransition():Boolean
+			{
+				for(var i:uint = 0; i < topicList.length; i++)
+				{
+					if(TweenMax.isTweening(topicList[i]))
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+			
+			private function set windowCloseButtonEnabled(value:Boolean):void
+			{
+				container.closeButton.enabled = value;
+			}
+			
+			protected function container_creationCompleteHandler(event:FlexEvent):void
+			{
+				container.top = 40 + container.height + 200 + this.height;
+				container.bottom = -(container.height + 200);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:TitleWindow id="container" skinClass="skins.BottomSquareWindowContainer" close="closeTitleWindow(event)" left="40" right="40" 
+				   creationComplete="container_creationCompleteHandler(event)" visible="false" />
+	
+</s:Group>

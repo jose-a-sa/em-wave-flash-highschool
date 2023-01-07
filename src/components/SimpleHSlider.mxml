@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HSlider xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   skinClass="skins.SimpleHSliderSkin"
+		   liveDragging="true" creationComplete="init(event)"
+		   addedToStage="addedToStageHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenMax;
+			
+			import mx.core.FlexGlobals;
+			import mx.events.FlexEvent;
+			
+			[Inspectable (enumeration="top,bottom", defaultValue="bottom")]
+			public var orientation:String;
+			
+			private var _mouseDown:Boolean = false;
+			
+			private var boundsOffset:Number = 60;
+			
+			protected function init(event:FlexEvent):void
+			{
+				FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+				
+				thumb.mouseEnabled = thumb.buttonMode = true;
+				track.mouseEnabled = track.buttonMode = false;
+				
+				thumb.top = this.orientation == "bottom" ? 14 : -14;
+				thumb.bottom = this.orientation == "bottom" ? 14 : -14;
+				
+				this.mouseFocusEnabled = false;
+			}
+			
+			protected function addedToStageHandler(event:Event):void
+			{
+				stage.addEventListener(Event.MOUSE_LEAVE, mouseLeaveStageHandler);
+			}
+			
+			protected function mouseLeaveStageHandler(event:Event):void
+			{
+				_mouseDown = false;
+								
+				var vars:Object = {};
+				
+				vars.top = this.orientation == "bottom" ? 14 : -14;
+				vars.bottom = this.orientation == "bottom" ? -14 : 14;
+				
+				TweenMax.to(thumb, 0.3, vars);
+			}
+			
+			protected function mouseMoveHandler(event:MouseEvent):void
+			{
+				var vars:Object = {}; 
+				
+				if( !isMouseOffBounds() && !isNormalThumb() )
+				{
+					vars = {
+						top: 0,
+						bottom: 0
+					}
+					
+					TweenMax.to(thumb, 0.3, vars); 
+				}
+				else if( isMouseOffBounds() && !isHiddenThumb() && !_mouseDown )
+				{
+					vars.top = this.orientation == "bottom" ? 14 : -14;
+					vars.bottom = this.orientation == "bottom" ? -14 : 14;
+					
+					TweenMax.to(thumb, 0.3, vars);
+				}
+			}
+			
+			override public function set toolTip(value:String):void
+			{
+				thumb.toolTip = value;
+			}
+			
+			override protected function thumb_mouseDownHandler(event:MouseEvent):void
+			{
+				_mouseDown = true;
+				
+				super.thumb_mouseDownHandler(event);
+				
+				FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_UP, thumb_mouseUpHandler);
+			}
+			
+			protected function thumb_mouseUpHandler(event:MouseEvent):void
+			{
+				_mouseDown = false;
+				
+				if( isMouseOffBounds() && !isHiddenThumb() && !_mouseDown )
+				{
+					var vars:Object = {};
+					
+					vars.top = this.orientation == "bottom" ? 14 : -14;
+					vars.bottom = this.orientation == "bottom" ? -14 : 14;
+					
+					TweenMax.to(thumb, 0.3, vars);
+				}
+				
+				FlexGlobals.topLevelApplication.removeEventListener(MouseEvent.MOUSE_UP, thumb_mouseUpHandler);
+			}
+			
+			private function isMouseOffBounds():Boolean
+			{
+				var offBoundsLeft:Boolean = (this.mouseX <= thumb.x - boundsOffset);
+				var offBoundsRight:Boolean = (this.mouseX >= thumb.x + thumb.width + boundsOffset);
+				var offBoundsTop:Boolean = (this.mouseY <= thumb.y - boundsOffset);
+				var offBoundsBottom:Boolean = (this.mouseY >= thumb.y + thumb.height + boundsOffset);
+				
+				return offBoundsLeft || offBoundsRight || offBoundsTop || offBoundsBottom;
+			}
+			
+			private function isHiddenThumb():Boolean
+			{
+				var vars:Object = {};
+				
+				vars.top = this.orientation == "bottom" ? 14 : -14;
+				vars.bottom = this.orientation == "bottom" ? -14 : 14;
+				
+				return thumb.top == vars.top && thumb.bottom == vars.bottom;
+			}
+			
+			private function isNormalThumb():Boolean
+			{
+				return thumb.top == 0 && thumb.bottom == 0;
+			}
+		]]>
+	</fx:Script>
+	
+	
+</s:HSlider>

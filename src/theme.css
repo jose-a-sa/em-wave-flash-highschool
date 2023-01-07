@@ -1,0 +1,162 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+mx|AccordionHeader
+{
+	font-size: 12 pt;
+	color: #0D0D0D;
+	font-family: "MX Myriad Pro Bold";
+	skin: ClassReference("skins.AccordianHeaderSkin");
+}
+
+mx|Accordion {
+	border-alpha: 0;
+	background-alpha: 0;
+	disabled-overlay-alpha: 0;
+}
+
+mx|ToolTip {
+	font-family: "MX Myriad Pro";
+	font-size: 11 pt;
+	background-color: #FFFFFF;
+	color: #0D0D0D;
+	corner-radius: 3px;
+	backgroundAlpha: 0.75;
+}
+
+s|Label {
+	font-family: "Myriad Pro";
+}
+
+s|RichText {
+	font-family: "Myriad Pro";
+}
+
+s|VScrollBar {
+	skinClass: ClassReference("skins.VScrollBar");
+}
+
+s|HScrollBar {
+	skinClass: ClassReference("skins.HScrollBar");
+}
+	
+
+@font-face {
+	src: url("assets/fonts/typodermic.ttf");
+	fontFamily: "Typodermic";
+	advancedAntiAliasing: true;
+}
+
+@font-face {
+	src: url("assets/fonts/typodermic.ttf");
+	fontFamily: "MX Typodermic";
+	embedAsCFF: false; 
+	advancedAntiAliasing: true;
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-REGULAR.OTF");
+	fontFamily: "Myriad Pro";
+	advancedAntiAliasing: true;
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-SEMIBOLD.OTF");
+	fontFamily: "Myriad Pro Semibold";
+	advancedAntiAliasing: true;
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-BOLD.OTF");
+	fontFamily: "Myriad Pro Bold";
+	advancedAntiAliasing: true;
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-BOLDCOND.OTF");
+	fontFamily: "Myriad Pro Bold Condensed";
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-BOLDCONDIT.OTF");
+	fontFamily: "Myriad Pro Bold Condensed Italic";
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-BOLDIT.OTF");
+	fontFamily: "Myriad Pro Bold Italic";
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-COND.OTF");
+	fontFamily: "Myriad Pro Condensed";
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-CONDIT.OTF");
+	fontFamily: "Myriad Pro Condensed Italic";
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-IT.OTF");
+	fontFamily: "Myriad Pro Italic";
+}
+
+
+/* the non-CFF fonts for MX Components*/
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-REGULAR.OTF");
+	fontFamily: "MX Myriad Pro";
+	embedAsCFF: false; 
+	advancedAntiAliasing: true;
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-SEMIBOLD.OTF");
+	fontFamily: "MX Myriad Pro Semibold";
+	embedAsCFF: false; 
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-BOLD.OTF");
+	fontFamily: "MX Myriad Pro Bold";
+	embedAsCFF: false; 
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-BOLDCOND.OTF");
+	fontFamily: "MX Myriad Pro Bold Condensed";
+	embedAsCFF: false; 
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-BOLDCONDIT.OTF");
+	fontFamily: "MX Myriad Pro Bold Condensed Italic";
+	embedAsCFF: false; 
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-BOLDIT.OTF");
+	fontFamily: "MX Myriad Pro Bold Italic";
+	embedAsCFF: false; 
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-COND.OTF");
+	fontFamily: "MX Myriad Pro Condensed";
+	embedAsCFF: false; 
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-CONDIT.OTF");
+	fontFamily: "MX Myriad Pro Condensed Italic";
+	embedAsCFF: false; 
+}
+
+@font-face {
+	src: url("assets/fonts/MYRIADPRO-IT.OTF");
+	fontFamily: "MX Myriad Pro Italic";
+	embedAsCFF: false; 
+}

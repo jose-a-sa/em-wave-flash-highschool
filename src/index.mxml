@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:pv3d="pv3d.*" xmlns:components="components.*" xmlns:topics="topics.*"
+			   initialize="application_initializeHandler(event)" creationComplete="init(event)" 
+			   preloader="preloader.CustomPreloader" backgroundColor="0x0D0D0D" 
+			   pageTitle="A Física e as Radiofrequências" >
+	
+	<fx:Style source="theme.css" />
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenMax;
+			
+			import mx.core.mx_internal;
+			import mx.events.FlexEvent;
+			import mx.managers.ToolTipManager;
+			
+			import preloader.CustomPreloaderClone;
+			
+			import pv3d.events.CubeEvent;
+			
+			import skins.WindowContainer;
+			
+			import topics.events.TopicEvent;
+			
+			import utils.AppManager;
+			import utils.VarManager;
+			
+			private var normalLabels:Object;
+			private var toogleLabels:Object;
+			
+			private var preloaderClone:CustomPreloaderClone;
+			public var text:String = "";
+			
+			protected function application_initializeHandler(event:FlexEvent):void
+			{
+				preloaderClone = new CustomPreloaderClone();
+				preloaderClone.addEventListener(Event.ADDED_TO_STAGE, onPreloaderAdded)
+				preloaderClone.addEventListener("hideAreasComplete", showApplicationFromPreloader);
+							
+				this.mx_internal::$addChild(preloaderClone);
+			}
+			
+			private function onPreloaderAdded(event:Event):void
+			{
+				preloaderClone.drawFinalState();
+				preloaderClone.hideAreas();
+				
+				stage.addEventListener(FullScreenEvent.FULL_SCREEN, onFullScreenEvent);
+			}
+			
+			protected function onFullScreenEvent(event:FullScreenEvent):void
+			{
+				updateLabel('bottom');
+			}
+			
+			private function showApplicationFromPreloader(event:Event):void
+			{
+				this.mx_internal::$removeChild(preloaderClone);
+				preloaderClone = null;
+			}
+			
+			protected function init(event:FlexEvent):void
+			{
+				ToolTipManager.showDelay = 50;
+				
+				normalLabels = VarManager.MENU_LABELS;
+				toogleLabels = VarManager.MENU_LABELS_CLICKED;
+				updateLabel("all");
+			}
+			
+			protected function cubeMenu_cubeClickHandler(event:CubeEvent):void
+			{				
+				switch(event.face3D.toLowerCase())
+				{
+					case "left":
+						if( !this.contains(projectInfo) )
+						{
+							wave.changeWave();
+							updateLabel("left");
+							colorChanger.resetToInitialColor();
+							colorChanger.currentWave = wave.isMechWave ? "mech" : "em";
+							infoContent.setTooltips();
+						}
+						break;
+					case "top":
+						wave.reset();
+						break;
+					case "bottom":
+						AppManager.toogleFullscreen();
+						break;
+					case "back":
+						if(!topicList.inTransition)
+						{
+							if(topicList.hidden)
+							{
+								topicList.showTopics();
+								infoContent.hide();
+								hideProjectInfo();
+							} 
+							else if(!topicList.hidden)
+							{
+								topicList.hideTopics();
+							}
+						}
+						break;
+					case "right":
+						if( !TweenMax.isTweening(projectInfo) )
+						{
+							!this.contains(projectInfo) ? showProjectInfo() : hideProjectInfo();
+						}
+						break;
+				}
+			}
+			
+			protected function updateLabel(label:String="all"):void
+			{
+				switch(label)
+					
+				{
+					case "back":
+						cubeMenu.setLabelByFace( topicList.hidden ? normalLabels.back : toogleLabels.back, "back");
+						break;
+					case "top":
+						cubeMenu.setLabelByFace( normalLabels.top , "top");
+						break;
+					case "left":
+						cubeMenu.setLabelByFace( wave.isMechWave ? normalLabels.left : toogleLabels.left , "left");
+						break;
+					case "bottom":
+						cubeMenu.setLabelByFace( !AppManager.isFullscreen ? normalLabels.bottom : toogleLabels.bottom , "bottom");
+						break;
+					case "right":
+						cubeMenu.setLabelByFace( infoPanelHidden ? normalLabels.right : toogleLabels.right, "right");
+					case "all":
+						cubeMenu.setLabelByFace( wave.isMechWave ? normalLabels.left : toogleLabels.left , "left");
+						cubeMenu.setLabelByFace( topicList.hidden ? normalLabels.back : toogleLabels.back, "back");
+						cubeMenu.setLabelByFace( normalLabels.top , "top");
+						cubeMenu.setLabelByFace( infoPanelHidden ? normalLabels.right : toogleLabels.right, "right");
+						cubeMenu.setLabelByFace( !AppManager.isFullscreen ? normalLabels.bottom : toogleLabels.bottom , "bottom");
+						cubeMenu.setLabelByFace( normalLabels.right , "right");
+						break;
+				}
+			}
+			
+			protected function showProjectInfo():void
+			{
+				if( !this.contains(projectInfo) )
+				{
+					projectInfo.horizontalCenter = 0;
+					projectInfo.verticalCenter = this.height/2 + projectInfo.height; 
+					
+					addElement(projectInfo);
+					
+					TweenMax.to(projectInfo, 0.8, {
+						verticalCenter:0,
+						onComplete: function():void
+						{
+							updateLabel("right");
+						}
+					});
+					
+					topicList.hideTopics();
+					hideInfoPanel();
+					wave.hideControls();
+					wave.hideWave();
+				}
+			}
+			
+			protected function hideProjectInfo():void
+			{
+				if( this.contains(projectInfo) )
+				{
+					projectInfo.horizontalCenter = 0;
+					
+					TweenMax.to(projectInfo, 0.750, {
+						verticalCenter: -(this.height/2 + projectInfo.height),
+						onComplete: function():void
+						{
+							removeElement(projectInfo);
+							updateLabel("right");
+						}
+					});
+					
+					showInfoPanel();
+					wave.showControls();
+					wave.showWave();
+				}
+			}
+			
+			protected function hideInfoPanel():void
+			{				
+				if( !infoPanelHidden )
+				{
+					TweenMax.to(infoContent, 0.750, {
+						top: -(infoContent.height+10),
+						right: -(infoContent.width+10)
+					});
+				}
+			}
+			
+			protected function showInfoPanel():void
+			{
+				if( infoPanelHidden )
+				{
+					TweenMax.to(infoContent, 0.750, {
+						top: 20,
+						right: 40
+					});
+				}
+			}
+			
+			protected function get infoPanelHidden():Boolean
+			{
+				return infoContent.top < -infoContent.height && infoContent.right < -infoContent.width
+			}
+			
+			protected function topicList_showContentCompleteHandler(event:TopicEvent):void
+			{
+				cubeMenu.hideCube();
+				hideInfoPanel();
+				wave.hideWave();
+				wave.hideControls();
+				
+				TweenMax.to(colorChanger, 0.750, {
+					bottom: -40,
+					right: -40
+				});
+			}			
+			
+			protected function topicList_hideContentHandler(event:TopicEvent):void
+			{
+				cubeMenu.showCube();
+				showInfoPanel();
+				wave.showWave();
+				wave.showControls();
+				
+				TweenMax.to(colorChanger, 0.750, {
+					bottom: 40,
+					right: 40
+				});
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:TitleWindow id="projectInfo" width="400" height="280" title="PROJECTO"  
+					   skinClass="skins.WindowContainer" close="{ hideProjectInfo() }">
+			
+			<s:VGroup top="0" left="10" width="100%">
+				<s:Label text="A FÍSICA E AS RADIOFREQUÊNCIAS" fontFamily="Typodermic" fontSize="22" 
+						 width="100%" textAlign="center"/>
+				<mx:Spacer height="10" />
+				<s:Label text="Trabalho realizado para o prémio monIT" fontFamily="Myriad Pro Bold" />
+				<s:Label text="Ana Carolina Antunes" />
+				<s:Label text="Beatriz Duro Freitas" />
+				<s:Label text="Diana Filipa Rocha" />
+				<s:Label text="José António Sá" />
+				<s:Label text="Mara Duarte Alves" />
+				<s:Label text="Grupo: TDBMC" fontFamily="Myriad Pro Bold" />
+			</s:VGroup>
+			
+			<s:VGroup bottom="85" right="7" horizontalAlign="right">
+				<s:Label text="12º Ano" fontFamily="Myriad Pro Bold" />
+				<s:Label text="Curso de Ciências e Tecnologias" />
+			</s:VGroup>
+			
+			<s:VGroup bottom="7" right="7" horizontalAlign="right">
+				<s:Label text="Escola Básica e Secundária de Diogo Bernardes" fontFamily="Myriad Pro Bold" />
+				<s:Label text="Ano lectivo 2010/11" />
+				<s:Label text="Ponte da Barca" />
+			</s:VGroup>
+			
+		</s:TitleWindow>
+	</fx:Declarations>
+	
+	<pv3d:Wave id="wave" width="100%" height="100%"  />
+	
+	<components:InfoContent id="infoContent" top="20" right="40" showContent="{topicList.hideTopics()}" creationComplete="{infoContent.setTooltips()}"/>
+	
+	<components:ColorChanger id="colorChanger" bottom="40" right="40" toolTip="{AppManager.colorChangerTip}"/> 
+	
+	<pv3d:Menu id="cubeMenu" x="{-this.width/2 + VarManager.MENU_WIDTH/2 + 20}" y="{-this.height/2 + VarManager.MENU_HEIGHT/2}" 
+			   cubeClick="cubeMenu_cubeClickHandler(event)" />
+	
+	<topics:TopicList id="topicList" width="100%" height="100%" 
+					  showTopicsComplete="{updateLabel('back')}" hideTopicsComplete="{updateLabel('back')}" 
+					  showContent="topicList_showContentCompleteHandler(event)" hideContent="topicList_hideContentHandler(event)"
+					  />
+	
+</s:Application>
